@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        />
+        <title>DBNGG</title>
+        <link rel="stylesheet" href="/frontend/static/css/index.css" />
+        <link rel="stylesheet" href="/frontend/static/css/font_text.css" />
+        <link rel="stylesheet" href="/frontend/static/css/no_blue.css" />
+    </head>
+    <body>
+        <header class="top">
+            <div class="container">
+                <div class="subtitle">онлайн-магазин</div>
+                <img
+                    class="logo-img"
+                    src="/frontend/static/image/logo.jpg"
+                    alt="DBNGG"
+                />
+            </div>
+        </header>
+
+        <section class="catalog">
+            <h2>Каталог</h2>
+
+            <div class="products-grid" id="products"></div>
+        </section>
+
+        <section class="delivery">
+            <h2>Доставка</h2>
+
+            <div class="accordion">
+                <div class="acc-block">
+                    <div class="acc-item">СДЭК Курьер <span>+</span></div>
+                    <div class="acc-content">
+                        Стоимость доставки рассчитывается автоматически на сайте
+                        СДЭКА при введении домашнего адреса.<br /><br />
+                        Сроки доставки: зависят от конкретного изделия. Уточнить
+                        сроки отправки можно в карточке каждого товара в разделе
+                        «доставка».<br /><br />
+                        Курьер СДЭК заранее свяжется с вами для согласования
+                        удобного времени доставки.
+                    </div>
+                </div>
+
+                <div class="acc-block">
+                    <div class="acc-item">
+                        Доставка ПОЧТОЙ РОССИИ & СДЭК <span>+</span>
+                    </div>
+                    <div class="acc-content">
+                        Стоимость доставки рассчитывается автоматически
+                        системами Почта России и СДЭК.<br /><br />
+                        Срок обработки заказа: зависят от конкретного
+                        изделия.<br /><br />
+                        Более точные сроки доставки и трек-код для отслеживания
+                        вы получите в письме-подтверждении.<br /><br />
+                        Если заказ ещё не передан — можно изменить через
+                        @nikita_barannov (укажите номер заказа и изменения).
+                    </div>
+                </div>
+
+                <div class="acc-block">
+                    <div class="acc-item">Доставка по миру <span>+</span></div>
+                    <div class="acc-content">
+                        Стоимость доставки рассчитывается индивидуально —
+                        напишите @nikita_barannov.<br /><br />
+                        Сроки отправки зависят от изделия и страны
+                        назначения.<br /><br />
+                        Возможны таможенные сборы.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="contacts">
+            <h2>Контакты</h2>
+
+            <div class="support">Техническая поддержка:</div>
+            <div class="contact-line" data-copy="dviggstore@gmail.com">
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 16 16"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="#FFFFFF"
+                >
+                    <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M1 3.5l.5-.5h13l.5.5v9l-.5.5h-13l-.5-.5v-9zm1 1.035V12h12V4.536L8.31 8.9H7.7L2 4.535zM13.03 4H2.97L8 7.869 13.03 4z"
+                    />
+                </svg>
+
+                dviggstore@gmail.com
+            </div>
+            <div class="contact-line" data-copy="@nikita_barannov">
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="#FFFFFF"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M23.1117 4.49449C23.4296 2.94472 21.9074 1.65683 20.4317 2.227L2.3425 9.21601C0.694517 9.85273 0.621087 12.1572 2.22518 12.8975L6.1645 14.7157L8.03849 21.2746C8.13583 21.6153 8.40618 21.8791 8.74917 21.968C9.09216 22.0568 9.45658 21.9576 9.70712 21.707L12.5938 18.8203L16.6375 21.8531C17.8113 22.7334 19.5019 22.0922 19.7967 20.6549L23.1117 4.49449ZM3.0633 11.0816L21.1525 4.0926L17.8375 20.2531L13.1 16.6999C12.7019 16.4013 12.1448 16.4409 11.7929 16.7928L10.5565 18.0292L10.928 15.9861L18.2071 8.70703C18.5614 8.35278 18.5988 7.79106 18.2947 7.39293C17.9906 6.99479 17.4389 6.88312 17.0039 7.13168L6.95124 12.876L3.0633 11.0816ZM8.17695 14.4791L8.78333 16.6015L9.01614 15.321C9.05253 15.1209 9.14908 14.9366 9.29291 14.7928L11.5128 12.573L8.17695 14.4791Z"
+                    />
+                </svg>
+
+                @nikita_barannov
+            </div>
+        </section>
+
+        <footer>
+            <div class="footer-inner">
+                <div class="left">
+                    <img
+                        class="logo-sm"
+                        src="/frontend/static/image/logo.jpg"
+                        alt="DBNGG"
+                    />
+                    <div>ООО «ПошивН»</div>
+                    <div>ИНН 5258158295</div>
+                    <div>ОГРН 245200023804</div>
+                </div>
+
+                <div class="right">
+                    <div>Полезные ссылки</div>
+                    <a href="#">Политика конфиденциальности</a>
+                    <a href="#">Публичная оферта</a>
+                    <a href="#">Cookie</a>
+                </div>
+            </div>
+        </footer>
+
+        <div class="modal-overlay" id="modal">
+            <div class="modal">
+                <div class="modal-close" onclick="closeModal()">✕</div>
+
+                <div class="modal-gallery">
+                    <img id="modal-main-img" />
+                    <div class="modal-thumbs" id="modal-thumbs"></div>
+                </div>
+
+                <div class="modal-info">
+                    <h3 id="modal-title"></h3>
+                    <div class="modal-price" id="modal-price"></div>
+                    <div class="modal-sizes">
+                        <label>Размер</label>
+                        <div class="size-selector" id="size-selector">
+                            <!-- Кнопки размеров будут добавляться через JS -->
+                        </div>
+                    </div>
+                    <div class="modal-weight" id="modal-weight"></div>
+
+                    <button class="buy-btn" id="modal-buy"></button>
+                </div>
+            </div>
+        </div>
+
+        <script src="/frontend/static/js/index.js"></script>
+    </body>
+</html>

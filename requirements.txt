@@ -1,0 +1,19 @@
+# Установка venv 3.12.10
+#py -3.12 -m venv venv
+#venv\Scripts\activate
+#pip install -r requirements.txt
+#python.exe -m pip install --upgrade pip
+
+aiogram
+fastapi
+asyncpg
+uvicorn
+Jinja2
+requests
+pydantic_settings
+tzdata
+init_data_py
+werkzeug
+python-multipart
+qrcode[pil]
+pillow
