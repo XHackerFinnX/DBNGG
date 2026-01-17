@@ -10,6 +10,12 @@ const products = [
             "/frontend/static/image/photo1.jpg",
             "/frontend/static/image/photo2.jpg",
             "/frontend/static/image/photo3.jpg",
+            "/frontend/static/image/photo4.jpg",
+            "/frontend/static/image/photo5.jpg",
+            "/frontend/static/image/photo6.jpg",
+            "/frontend/static/image/photo7.jpg",
+            "/frontend/static/image/photo8.jpg",
+            "/frontend/static/image/photo9.jpg",
         ],
     },
     {
@@ -27,6 +33,9 @@ const products = [
 ];
 
 const container = document.getElementById("products");
+
+let currentImages = [];
+let currentIndex = 0;
 
 products.forEach((p) => {
     const card = document.createElement("div");
@@ -80,14 +89,21 @@ function openModal(product) {
     modalMainImg.src = product.images[0];
     modalThumbs.innerHTML = "";
 
-    product.images.forEach((img) => {
+    product.images.forEach((img, index) => {
         const thumb = document.createElement("img");
         thumb.src = img;
+
         thumb.addEventListener("click", () => {
-            modalMainImg.src = img;
+            currentIndex = index;
+            updateMainImage();
         });
+
         modalThumbs.appendChild(thumb);
     });
+
+    currentImages = product.images;
+    currentIndex = 0;
+    updateMainImage();
 
     // Создаем кнопки размеров
     const sizeSelector = document.getElementById("size-selector");
@@ -142,6 +158,62 @@ function closeModal() {
         // Дополнительная очистка (если нужно)
     }, 400);
 }
+
+function updateMainImage() {
+    modalMainImg.src = currentImages[currentIndex];
+
+    document.querySelectorAll(".modal-thumbs img").forEach((img, i) => {
+        img.classList.toggle("active", i === currentIndex);
+    });
+}
+
+document.getElementById("gallery-prev").onclick = () => {
+    currentIndex =
+        (currentIndex - 1 + currentImages.length) % currentImages.length;
+    updateMainImage();
+};
+
+document.getElementById("gallery-next").onclick = () => {
+    currentIndex = (currentIndex + 1) % currentImages.length;
+    updateMainImage();
+};
+
+let startX = 0;
+
+modalMainImg.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+});
+
+modalMainImg.addEventListener("touchend", (e) => {
+    const diff = e.changedTouches[0].clientX - startX;
+
+    if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+            document.getElementById("gallery-prev").click();
+        } else {
+            document.getElementById("gallery-next").click();
+        }
+    }
+});
+
+const fullscreen = document.getElementById("imageFullscreen");
+const fullscreenImg = document.getElementById("fullscreenImg");
+const fullscreenClose = document.getElementById("fullscreenClose");
+
+modalMainImg.addEventListener("click", () => {
+    fullscreenImg.src = modalMainImg.src;
+    fullscreen.classList.add("show");
+});
+
+fullscreenClose.addEventListener("click", () => {
+    fullscreen.classList.remove("show");
+});
+
+fullscreen.addEventListener("click", (e) => {
+    if (e.target === fullscreen) {
+        fullscreen.classList.remove("show");
+    }
+});
 
 // Аккордеон
 document.querySelectorAll(".acc-item").forEach((item) => {
