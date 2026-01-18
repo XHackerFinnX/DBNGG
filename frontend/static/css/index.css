@@ -505,6 +505,218 @@ body.modal-open {
     box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
 }
 
+/* Виджет карточка */
+.cart-widget {
+    position: fixed;
+    right: 16px;
+    bottom: 90px;
+
+    background: var(--text-primary);
+    color: var(--bg-primary);
+
+    padding: 10px 14px;
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: all 0.35s ease;
+
+    z-index: 999;
+}
+
+.cart-widget.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Иконка */
+.cart-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-icon svg {
+    width: 34px;
+    height: 34px;
+}
+
+/* Текст */
+.cart-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.cart-price {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.cart-count {
+    font-size: 15px;
+    opacity: 0.75;
+}
+
+/* Модальное окно заказа */
+.order-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.order-modal.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.order-modal-content {
+    background: #fff;
+    color: var(--bg-primary);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    position: relative;
+}
+
+.order-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    border: none;
+    background: none;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+.order-modal h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.order-modal h3 {
+    margin: 28px 0px 0px 0px;
+    font-size: 18px;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 16px;
+}
+
+.order-img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+}
+
+.order-info {
+    flex: 1;
+}
+
+.order-title {
+    font-weight: 600;
+}
+
+.order-size {
+    font-size: 14px;
+    color: #555;
+}
+
+.order-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.qty-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background: none;
+    cursor: pointer;
+}
+
+.order-price {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.order-total {
+    text-align: right;
+    font-size: 18px;
+    margin-top: 5px;
+}
+
+.order-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.order-form label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.order-form input,
+.order-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #000;
+    font-size: 14px;
+    outline: none;
+}
+
+.order-form textarea {
+    resize: none;
+    height: 80px;
+}
+
+.order-submit {
+    padding: 16px;
+    background: #111;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 12px;
+}
+
+.order-submit:hover {
+    opacity: 0.85;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
 /* Медиа-запросы */
 @media (max-width: 900px) {
     .products-grid {
