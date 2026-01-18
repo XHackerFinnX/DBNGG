@@ -1,8 +1,9 @@
 const products = [
     {
+        id: 1,
         title: "Футболка DBNGG",
         price: "8 999 руб.",
-        status: "Нет в наличии",
+        status: "Выберите размер",
         weight: "200 г",
         available: true,
         sizes: ["M", "L", "XL", "XXL"],
@@ -19,6 +20,7 @@ const products = [
         ],
     },
     {
+        id: 2,
         title: "Футболка DBNGG",
         price: "8 999 руб.",
         status: "Нет в наличии",
@@ -42,6 +44,32 @@ const cartState = {
     total: 0,
 };
 
+function saveCart() {
+    localStorage.setItem("cart", JSON.stringify(cartState.items));
+}
+
+function loadCart() {
+    const saved = localStorage.getItem("cart");
+    if (saved) {
+        cartState.items = JSON.parse(saved);
+        recalcCart();
+        if (cartState.count != 0) {
+            showCartWidget();
+        }
+    }
+}
+
+function showPlusOne(card) {
+    const el = document.createElement("div");
+    el.className = "plus-one";
+    el.textContent = "+1";
+
+    card.style.position = "relative";
+    card.appendChild(el);
+
+    setTimeout(() => el.remove(), 800);
+}
+
 function getProductWord(count) {
     if (count % 10 === 1 && count % 100 !== 11) return "товар";
     if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100))
@@ -59,6 +87,11 @@ function showCartWidget() {
         `${cartState.count} ${getProductWord(cartState.count)}`;
 
     widget.classList.add("active");
+}
+
+function hideCartWidget() {
+    const widget = document.getElementById("cartWidget");
+    widget.classList.remove("active");
 }
 
 const orderModal = document.getElementById("orderModal");
@@ -88,7 +121,11 @@ orderModal.addEventListener("click", (e) => {
 });
 
 function renderOrder() {
-    if (!cartState.items.length) return;
+    if (!cartState.items.length) {
+        closeOrderModal();
+        hideCartWidget();
+        return;
+    }
 
     orderModalBody.innerHTML = `
         <h2>Ваш заказ:</h2>
@@ -114,9 +151,9 @@ function renderOrder() {
                     ${(item.qty * item.price).toLocaleString()} руб.
                 </div>
 
-                <button class="remove-item" data-i="${i}">X</button>
+                <button class="remove-item" data-i="${i}">✕</button>
             </div>
-        `
+        `,
             )
             .join("")}
 
@@ -140,7 +177,6 @@ function bindOrderControls() {
             }
 
             recalcCart();
-            showCartWidget();
             renderOrder();
         };
     });
@@ -149,7 +185,6 @@ function bindOrderControls() {
         btn.onclick = () => {
             cartState.items.splice(+btn.dataset.i, 1);
             recalcCart();
-            showCartWidget();
             renderOrder();
         };
     });
@@ -159,16 +194,16 @@ function renderOrderForm() {
     return `
         <form class="order-form" id="orderForm">
             <label>ФИО</label>
-            <input type="text">
+            <input type="text" id="fioInput" placeholder="Иванов Иван Иванович">
 
             <label>Телеграмм</label>
-            <input type="text" placeholder="@Name">
+            <input type="text" id="telegramInput" placeholder="@name">
 
             <label>Номер телефона</label>
             <input type="tel" id="phoneInput" placeholder="+7 (000) 000-00-00">
 
             <label>Почта</label>
-            <input type="email" id="emailInput">
+            <input type="email" id="emailInput" placeholder="name@example.com">
 
             ${renderDelivery()}
 
@@ -192,9 +227,14 @@ function recalcCart() {
         cartState.total += item.qty * item.price;
     });
 
+    saveCart();
+
     if (cartState.count === 0) {
+        cartState.items = [];
+        hideCartWidget();
         closeOrderModal();
-        document.getElementById("cartWidget").classList.remove("active");
+    } else {
+        showCartWidget();
     }
 }
 
@@ -344,18 +384,28 @@ function openModal(product) {
         if (!selectedSize || !product.available) return;
 
         const price = parseInt(
-            product.price.replace(/\s/g, "").replace("руб.", "")
+            product.price.replace(/\s/g, "").replace("руб.", ""),
         );
 
-        cartState.items.push({
-            product,
-            size: selectedSize,
-            qty: 1,
-            price,
-        });
+        const existingItem = cartState.items.find(
+            (item) =>
+                item.product.id === product.id && item.size === selectedSize,
+        );
+
+        if (existingItem) {
+            existingItem.qty += 1;
+        } else {
+            cartState.items.push({
+                product,
+                size: selectedSize,
+                qty: 1,
+                price,
+            });
+        }
 
         recalcCart();
         showCartWidget();
+        showPlusOne(document.querySelector(".product-card"));
         closeModal();
     };
 }
@@ -458,22 +508,100 @@ document.addEventListener("submit", (e) => {
     if (e.target.id !== "orderForm") return;
     e.preventDefault();
 
-    const phone = document.getElementById("phoneInput");
-    const email = document.getElementById("emailInput");
+    const fields = [
+        {
+            el: document.getElementById("fioInput"),
+            name: "ФИО",
+            check: (v) => v.trim().length >= 5,
+        },
+        {
+            el: document.getElementById("phoneInput"),
+            name: "Номер телефона",
+            check: (v) => /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/.test(v),
+        },
+        {
+            el: document.getElementById("emailInput"),
+            name: "Почта",
+            check: (v) =>
+                /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v),
+        },
+        {
+            el: document.getElementById("deliveryCity"),
+            name: "Город",
+            check: (v) => v.trim().length >= 2,
+        },
+        {
+            el: document.getElementById("deliveryPoint"),
+            name: "Пункт получения",
+            check: (v) => v.trim().length >= 3,
+        },
+        {
+            el: document.getElementById("deliveryRecipient"),
+            name: "Получатель",
+            check: (v) => v.trim().length >= 5,
+        },
+    ];
 
     let valid = true;
 
-    if (!/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/.test(phone.value)) {
-        phone.style.borderColor = "red";
-        valid = false;
-    } else phone.style.borderColor = "#000";
+    // Очистка старых ошибок
+    document
+        .querySelectorAll(".input-error")
+        .forEach((el) => el.classList.remove("input-error"));
 
-    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email.value)) {
-        email.style.borderColor = "red";
-        valid = false;
-    } else email.style.borderColor = "#000";
+    fields.forEach(({ el, check }) => {
+        if (!el || !check(el.value)) {
+            el.classList.add("input-error");
+            valid = false;
+        }
+    });
 
-    if (!valid) return;
+    if (!valid) {
+        return;
+    }
 
+    // ✅ Всё валидно
     alert("Заказ отправлен ✔");
+
+    // Сбор всех данных формы
+    const orderData = {
+        fio: document.getElementById("fioInput")?.value || "",
+        telegram: document.getElementById("telegramInput")?.value || "",
+        phone: document.getElementById("phoneInput")?.value || "",
+        email: document.getElementById("emailInput")?.value || "",
+
+        delivery: {
+            city: document.getElementById("deliveryCity")?.value || "",
+            point: document.getElementById("deliveryPoint")?.value || "",
+            recipient:
+                document.getElementById("deliveryRecipient")?.value || "",
+            comment: document.querySelector("textarea")?.value || "",
+        },
+
+        cart: JSON.parse(localStorage.getItem("cart")) || [],
+    };
+
+    // Красивый вывод в консоль
+    console.group("🛒 Данные заказа");
+    console.log("👤 ФИО:", orderData.fio);
+    console.log("👤 Телеграмм:", orderData.telegram);
+    console.log("📞 Телефон:", orderData.phone);
+    console.log("📧 Email:", orderData.email);
+
+    console.group("🚚 Доставка");
+    console.log("Город:", orderData.delivery.city);
+    console.log("Пункт получения:", orderData.delivery.point);
+    console.log("Получатель:", orderData.delivery.recipient);
+    console.log("Комментарий:", orderData.delivery.comment);
+    console.groupEnd();
+
+    console.group("📦 Корзина");
+    console.table(orderData.cart);
+    console.groupEnd();
+
+    console.groupEnd();
+
+    // Тут дальше: отправка на backend / Telegram / API
 });
+
+loadCart();

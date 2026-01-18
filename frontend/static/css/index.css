@@ -648,12 +648,12 @@ body.modal-open {
 .order-controls {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
 }
 
 .qty-btn {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     border: 1px solid #ccc;
     background: none;
@@ -663,6 +663,16 @@ body.modal-open {
 .order-price {
     font-weight: 600;
     white-space: nowrap;
+}
+
+.remove-item {
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--bg-primary);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--text-footer);
 }
 
 .order-total {
@@ -711,6 +721,28 @@ body.modal-open {
 
 .order-submit:hover {
     opacity: 0.85;
+}
+
+.input-error {
+    border-color: #f95d51 !important;
+}
+
+.error-text {
+    color: #f95d51;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.plus-one {
+    position: absolute;
+    top: 40%;
+    right: 20px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #22c55e;
+    opacity: 0;
+    animation: plusOne 0.8s ease forwards;
+    pointer-events: none;
 }
 
 body.modal-open {
@@ -783,6 +815,64 @@ body.modal-open {
     .logo-img {
         max-width: 280px;
     }
+
+    .order-modal {
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .order-modal-content {
+        width: 100%;
+        max-width: 100%;
+        height: 92vh;
+        max-height: 92vh;
+
+        border-radius: 20px 20px 0 0;
+        padding: 20px 16px 16px;
+
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .order-modal.show .order-modal-content {
+        transform: translateY(0);
+    }
+
+    .order-close {
+        top: 10px;
+        right: 12px;
+        font-size: 24px;
+    }
+
+    .order-item {
+        align-items: flex-start;
+    }
+
+    .order-img {
+        width: 64px;
+        height: 64px;
+    }
+
+    .order-controls {
+        gap: 6px;
+    }
+
+    .qty-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 16px;
+    }
+
+    .order-form input,
+    .order-form textarea {
+        font-size: 16px;
+    }
+
+    .order-submit {
+        bottom: 0;
+        background: #111;
+        margin-top: 16px;
+    }
 }
 
 @keyframes sizeAppear {
@@ -793,5 +883,19 @@ body.modal-open {
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes plusOne {
+    0% {
+        opacity: 0;
+        transform: translateY(0);
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
     }
 }
