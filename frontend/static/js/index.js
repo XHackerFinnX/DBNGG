@@ -144,11 +144,11 @@ function renderOrder() {
                 <div class="order-controls">
                     <button class="qty-btn" data-i="${i}" data-type="minus">−</button>
                     <span>${item.qty}</span>
-                    <button class="qty-btn" data-i="${i}" data-type="plus">+</button>
-                </div>
+                    <button class="qty-btn" data-i="${i}" data-type="plus">+</button>Мне ну
 
-                <div class="order-price">
-                    ${(item.qty * item.price).toLocaleString()} руб.
+                    <div class="order-price">
+                        ${(item.qty * item.price).toLocaleString()} руб.
+                    </div>
                 </div>
 
                 <button class="remove-item" data-i="${i}">✕</button>
