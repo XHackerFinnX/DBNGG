@@ -8,15 +8,15 @@ const products = [
         available: true,
         sizes: ["M", "L", "XL", "XXL"],
         images: [
-            "/frontend/static/image/photo1.jpg",
-            "/frontend/static/image/photo2.jpg",
-            "/frontend/static/image/photo3.jpg",
-            "/frontend/static/image/photo4.jpg",
-            "/frontend/static/image/photo5.jpg",
-            "/frontend/static/image/photo6.jpg",
-            "/frontend/static/image/photo7.jpg",
-            "/frontend/static/image/photo8.jpg",
-            "/frontend/static/image/photo9.jpg",
+            "/static/image/photo1.jpg",
+            "/static/image/photo2.jpg",
+            "/static/image/photo3.jpg",
+            "/static/image/photo4.jpg",
+            "/static/image/photo5.jpg",
+            "/static/image/photo6.jpg",
+            "/static/image/photo7.jpg",
+            "/static/image/photo8.jpg",
+            "/static/image/photo9.jpg",
         ],
     },
     {
@@ -27,10 +27,7 @@ const products = [
         weight: "200 г",
         available: false,
         sizes: ["M", "L", "XL"],
-        images: [
-            "/frontend/static/image/photo4.jpg",
-            "/frontend/static/image/photo5.jpg",
-        ],
+        images: ["/static/image/photo4.jpg", "/static/image/photo5.jpg"],
     },
 ];
 
@@ -43,6 +40,17 @@ const cartState = {
     count: 0,
     total: 0,
 };
+
+const deliveryState = {
+    cityName: "",
+    cityFullName: "",
+    postalCode: null,
+    pvz: null,
+    price: null,
+    day: null,
+};
+
+let cachedPvzList = [];
 
 function saveCart() {
     localStorage.setItem("cart", JSON.stringify(cartState.items));
@@ -144,7 +152,7 @@ function renderOrder() {
                 <div class="order-controls">
                     <button class="qty-btn" data-i="${i}" data-type="minus">−</button>
                     <span>${item.qty}</span>
-                    <button class="qty-btn" data-i="${i}" data-type="plus">+</button>Мне ну
+                    <button class="qty-btn" data-i="${i}" data-type="plus">+</button>
 
                     <div class="order-price">
                         ${(item.qty * item.price).toLocaleString()} руб.
@@ -161,6 +169,7 @@ function renderOrder() {
     `;
 
     bindOrderControls();
+    bindCityAutocomplete();
 }
 
 function bindOrderControls() {
@@ -207,9 +216,8 @@ function renderOrderForm() {
 
             ${renderDelivery()}
 
-            <div class="order-total">
-                Сумма: <b>${cartState.total.toLocaleString()} руб.</b>
-            </div>
+            <div style="display: flex; justify-content: flex-end; font-size: 15px; margin-top: 12px;">Сумма: ${cartState.total.toLocaleString()} руб.</div>
+            <div class="order-total" id="orderTotalBlock" style="display:none;"></div>
 
             <button type="submit" class="order-submit">
                 Оформить заказ
@@ -238,25 +246,40 @@ function recalcCart() {
     }
 }
 
+/* ================== Доставка ================== */
+
 function renderDelivery() {
     return `
         <h3>Доставка</h3>
 
         <label>Город</label>
-        <input
-            type="text"
-            id="deliveryCity"
-            value="Санкт-Петербург"
-        >
+        <div style="position: relative;">
+            <input
+                type="text"
+                id="deliveryCity"
+                value=""
+                autocomplete="off"
+                name="-"
+                placeholder="Введите город"
+            >
+            <div id="citySuggestions" class="suggestions"></div>
+        </div>
+
+        <div id="deliveryOptions" style="margin-top:8px;"></div>
 
         <label>Пункт получения</label>
-        <input
-            type="text"
-            id="deliveryPoint"
-            placeholder="Выберите пункт получения"
-        >
+        <div id="pvzWrapper" style="position: relative;">
+            <input
+                type="text"
+                id="deliveryPoint"
+                placeholder="Выберите пункт получения"
+                autocomplete="off"
+            >
+            <div id="pvzSuggestions" class="suggestions"></div>
+        </div>
+        <div class="pvz-info"></div>
 
-        <label>Получатель</label>
+        <label>Получатель (ФИО полностью)</label>
         <input
             type="text"
             id="deliveryRecipient"
@@ -281,6 +304,431 @@ function getDeliveryData() {
 }
 
 const delivery = getDeliveryData();
+
+function bindCityAutocomplete() {
+    const cityInput = document.getElementById("deliveryCity");
+    const suggestions = document.getElementById("citySuggestions");
+
+    if (!cityInput || !suggestions) return;
+
+    // Создаем блок для полного названия города
+    let fullNameBlock = cityInput.parentElement.querySelector(".city-fullname");
+    if (!fullNameBlock) {
+        fullNameBlock = document.createElement("div");
+        fullNameBlock.className = "city-fullname";
+        fullNameBlock.style.fontSize = "12px";
+        fullNameBlock.style.color = "gray";
+        fullNameBlock.style.marginTop = "2px";
+        fullNameBlock.textContent = "";
+        cityInput.parentElement.appendChild(fullNameBlock);
+    }
+
+    // Создаем один спиннер
+    let spinner = cityInput.parentElement.querySelector(".loading-spinner");
+    if (!spinner) {
+        spinner = document.createElement("span");
+        spinner.className = "loading-spinner";
+        spinner.style.position = "absolute";
+        spinner.style.right = "10px";
+        spinner.style.top = "50%";
+        spinner.style.transform = "translateY(-50%)";
+        spinner.style.width = "16px";
+        spinner.style.height = "16px";
+        spinner.style.border = "2px solid #ccc";
+        spinner.style.borderTop = "2px solid #22c55e";
+        spinner.style.borderRadius = "50%";
+        spinner.style.animation = "spin 0.8s linear infinite";
+        spinner.style.display = "none";
+        cityInput.parentElement.appendChild(spinner);
+    }
+
+    let debounceTimer = null;
+
+    cityInput.addEventListener("input", () => {
+        const query = cityInput.value.trim();
+        suggestions.innerHTML = "";
+        suggestions.style.display = "none";
+        fullNameBlock.textContent = "";
+
+        if (!query) {
+            spinner.style.display = "none";
+            return;
+        }
+
+        spinner.style.display = "block";
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(
+                    "https://geoserv.tildacdn.com/api/city/",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "text/plain;charset=UTF-8",
+                        },
+                        body: JSON.stringify({
+                            pattern: query,
+                            lang: "RU",
+                            countries: "ru",
+                            rz: "com",
+                        }),
+                    },
+                );
+
+                const data = await res.json();
+                spinner.style.display = "none";
+                console.log(data);
+                if (!data || !data.length) return;
+
+                suggestions.innerHTML = data
+                    .map(
+                        (city) => `
+                        <div class="suggestion-item" data-name="${city.name}" data-fullname="${city.fullName}" data-postalcode="${city.postalCode}" style="padding:8px; cursor:pointer;">
+                            <div style="font-size:16px; color:#000;">${city.name}</div>
+                            <div style="font-size:12px; color:gray;">${city.fullName}</div>
+                        </div>
+                    `,
+                    )
+                    .join("");
+                suggestions.style.display = "block";
+
+                suggestions
+                    .querySelectorAll(".suggestion-item")
+                    .forEach((div) => {
+                        div.addEventListener("click", async () => {
+                            cityInput.value = div.dataset.name;
+                            fullNameBlock.textContent = div.dataset.fullname;
+                            deliveryState.cityName = div.dataset.name;
+                            deliveryState.cityFullName = div.dataset.fullname;
+                            deliveryState.postalCode = div.dataset.postalcode;
+
+                            suggestions.style.display = "none";
+
+                            await loadDeliveryAndPvz();
+                        });
+                    });
+            } catch (err) {
+                console.error(err);
+                spinner.style.display = "none";
+            }
+        }, 400);
+    });
+
+    // Скрытие списка при клике вне
+    document.addEventListener("click", (e) => {
+        if (!cityInput.parentElement.contains(e.target)) {
+            suggestions.style.display = "none";
+        }
+    });
+}
+
+/* CSS для анимации спиннера */
+const style = document.createElement("style");
+style.innerHTML = `
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+`;
+document.head.appendChild(style);
+
+async function loadDeliveryAndPvz() {
+    const pointInput = document.getElementById("deliveryPoint");
+    const deliveryOptions = document.getElementById("deliveryOptions");
+    const pvzWrapper = document.getElementById("pvzWrapper");
+    const infoBlock = pvzWrapper.parentElement.querySelector(".pvz-info");
+    const cityInputWrapper =
+        document.getElementById("deliveryCity").parentElement;
+
+    // ===== СБРОС ПОЛЕЙ =====
+    pointInput.value = "";
+    pointInput.disabled = true;
+    deliveryState.pvz = null;
+    deliveryOptions.innerHTML = "";
+    pvzWrapper.style.display = "block";
+    if (infoBlock) {
+        infoBlock.style.display = "none";
+        infoBlock.innerHTML = "";
+    }
+
+    // ===== СПИННЕР =====
+    let spinner = pvzWrapper.querySelector(".loading-spinner");
+    if (!spinner) {
+        spinner = document.createElement("span");
+        spinner.className = "loading-spinner";
+        spinner.style.position = "absolute";
+        spinner.style.right = "10px";
+        spinner.style.top = "50%";
+        spinner.style.transform = "translateY(-50%)";
+        spinner.style.width = "16px";
+        spinner.style.height = "16px";
+        spinner.style.border = "2px solid #ccc";
+        spinner.style.borderTop = "2px solid #22c55e";
+        spinner.style.borderRadius = "50%";
+        spinner.style.animation = "spin 0.8s linear infinite";
+        pvzWrapper.appendChild(spinner);
+    }
+    spinner.style.display = "block";
+
+    // ===== Убираем старое сообщение =====
+    let noDeliveryMsg = cityInputWrapper.querySelector(".no-delivery-msg");
+    if (noDeliveryMsg) noDeliveryMsg.remove();
+
+    try {
+        // 1️⃣ расчет доставки
+        const calcRes = await fetch("/api/delivery/calculate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ postal_code: deliveryState.postalCode }),
+        });
+
+        const calcData = await calcRes.json();
+        deliveryState.price = calcData.price;
+        deliveryState.day = calcData.days;
+
+        // ===== Если доставка невозможна =====
+        if (!deliveryState.price || !deliveryState.day) {
+            // Показываем сообщение под input города
+            noDeliveryMsg = document.createElement("div");
+            noDeliveryMsg.className = "no-delivery-msg";
+            noDeliveryMsg.style.color = "red";
+            noDeliveryMsg.style.fontSize = "13px";
+            noDeliveryMsg.style.marginTop = "4px";
+            noDeliveryMsg.textContent =
+                "К сожалению, в выбранный вами город доставка не осуществляется";
+            cityInputWrapper.appendChild(noDeliveryMsg);
+
+            // Скрываем все блоки доставки
+            deliveryOptions.style.display = "none";
+            pvzWrapper.style.display = "none";
+            if (infoBlock) infoBlock.style.display = "none";
+            document.getElementById("deliveryRecipient").style.display = "none";
+            document.getElementById("deliveryComment").style.display = "none";
+
+            spinner.style.display = "none";
+            return;
+        }
+
+        // ===== Доставка возможна, показываем все блоки =====
+        deliveryOptions.style.display = "block";
+        pvzWrapper.style.display = "block";
+        document.getElementById("deliveryRecipient").style.display = "block";
+        document.getElementById("deliveryComment").style.display = "block";
+
+        // ===== Радиокнопки =====
+        let html = `
+            <label style="display:flex; gap:8px;">
+                <input type="radio" name="deliveryType" value="pvz" checked style="width:16px;">
+                Доставка в ПВЗ СДЭК от ${deliveryState.day} дней, ${deliveryState.price} руб.
+            </label>
+        `;
+
+        console.log(deliveryState.cityFullName);
+        if (deliveryState.cityFullName.toLowerCase() === "россия, г москва") {
+            html += `
+                <label style="display:flex; gap:8px;">
+                    <input type="radio" name="deliveryType" value="self" style="width:16px;">
+                    Самовывоз от 10 дней
+                </label>
+            `;
+        }
+
+        deliveryOptions.innerHTML = html;
+
+        // ===== ОБРАБОТЧИК ПЕРЕКЛЮЧЕНИЯ ТИПА ДОСТАВКИ =====
+        bindDeliveryTypeRadios();
+
+        // 2️⃣ загрузка ПВЗ
+        const pvzRes = await fetch(
+            `/api/delivery/pvz?postalCode=${deliveryState.postalCode}`,
+        );
+        const pvzList = await pvzRes.json();
+        cachedPvzList = pvzList;
+
+        renderPvzAutocomplete(cachedPvzList);
+
+        pointInput.disabled = false;
+        spinner.style.display = "none";
+    } catch (e) {
+        console.error("Ошибка доставки", e);
+        spinner.style.display = "none";
+        pointInput.disabled = true;
+    }
+}
+
+function renderPvzAutocomplete(pvzList) {
+    const wrapper = document.getElementById("pvzWrapper");
+    const input = document.getElementById("deliveryPoint");
+    const suggestions = document.getElementById("pvzSuggestions");
+    const infoBlock = wrapper.parentElement.querySelector(".pvz-info");
+
+    // ===== СБРОС =====
+    infoBlock.style.display = "none";
+    infoBlock.innerHTML = "";
+    input.value = "";
+    wrapper.style.display = "block";
+
+    // ===== ОБРАБОТЧИКИ =====
+    input.onclick = () => {
+        if (!pvzList.length) return;
+        buildPvzList(pvzList);
+        suggestions.style.display = "block";
+    };
+
+    input.oninput = () => buildPvzList(pvzList, input.value);
+
+    function buildPvzList(list, query = "") {
+        const q = query.toLowerCase();
+        const filtered = list.filter(
+            (p) =>
+                p.name.toLowerCase().includes(q) ||
+                p.address.toLowerCase().includes(q),
+        );
+
+        if (!filtered.length) {
+            suggestions.style.display = "none";
+            return;
+        }
+
+        suggestions.innerHTML = filtered
+            .map(
+                (p) => `
+                <div class="suggestion-item" data-code="${p.code}" style="padding:8px; cursor:pointer;">
+                    <div style="font-size:15px;">${p.name}</div>
+                    <div style="font-size:12px; color:gray;">${p.address}</div>
+                </div>
+            `,
+            )
+            .join("");
+        suggestions.style.display = "block";
+
+        suggestions.querySelectorAll(".suggestion-item").forEach((el) => {
+            el.onclick = () => selectPvz(el.dataset.code);
+        });
+    }
+
+    function selectPvz(code) {
+        const pvz = pvzList.find((p) => p.code === code);
+        if (!pvz) return;
+
+        deliveryState.pvz = pvz.code;
+
+        wrapper.style.display = "none";
+        suggestions.style.display = "none";
+
+        infoBlock.innerHTML = `
+            <div style="font-size:14px;">${pvz.name}</div>
+            <div style="font-size:14px;">Адрес: ${pvz.address}</div>
+            ${pvz.addressComment ? `<div style="font-size:13px; color:gray;">${pvz.addressComment}</div>` : ""}
+            <div style="font-size:14px;">Время работы: ${pvz.workTime}</div>
+            ${pvz.phone ? `<div style="font-size:14px;">Телефон: ${pvz.phone}</div>` : ""}
+            <div class="pvz-change" style="margin-top:4px; cursor:pointer; text-decoration:underline; text-decoration-style:dashed; font-size:14px;">Изменить</div>
+        `;
+        infoBlock.style.display = "block";
+
+        infoBlock.querySelector(".pvz-change").onclick = resetPvz;
+
+        updateOrderTotal();
+    }
+
+    function resetPvz() {
+        const wrapper = document.getElementById("pvzWrapper");
+        const infoBlock = wrapper.parentElement.querySelector(".pvz-info");
+
+        deliveryState.pvz = null;
+
+        wrapper.style.display = "block";
+        infoBlock.style.display = "none";
+        infoBlock.innerHTML = "";
+        document.getElementById("deliveryPoint").value = "";
+
+        updateOrderTotal();
+    }
+
+    document.addEventListener("click", (e) => {
+        if (!wrapper.contains(e.target)) {
+            suggestions.style.display = "none";
+        }
+    });
+}
+
+function updateOrderTotal() {
+    const orderTotalBlock = document.getElementById("orderTotalBlock");
+    if (!orderTotalBlock) return;
+
+    const typeRadio = document.querySelector(
+        'input[name="deliveryType"]:checked',
+    );
+    const type = typeRadio ? typeRadio.value : "pvz";
+
+    // Решаем, показывать сумму
+    let showTotal = false;
+    if (type === "self") {
+        showTotal = true;
+    } else if (type === "pvz" && deliveryState.pvz) {
+        showTotal = true;
+    }
+
+    if (!showTotal) {
+        orderTotalBlock.style.display = "none";
+        orderTotalBlock.innerHTML = "";
+        return;
+    }
+
+    const deliveryPrice = type === "self" ? 0 : deliveryState.price || 0;
+    const productsTotal = cartState.total || 0;
+    const totalSum = productsTotal + deliveryPrice;
+
+    orderTotalBlock.innerHTML = `
+        <div>Доставка в ПВЗ СДЭК: <b>${deliveryPrice.toLocaleString()} руб.</b></div>
+        <div>Итоговая сумма: <b>${totalSum.toLocaleString()} руб.</b></div>
+    `;
+    orderTotalBlock.style.display = "block";
+}
+
+// ===== ОБРАБОТЧИК ПЕРЕКЛЮЧЕНИЯ ТИПА ДОСТАВКИ =====
+function bindDeliveryTypeRadios() {
+    const deliveryOptions = document.getElementById("deliveryOptions");
+    if (!deliveryOptions) return;
+
+    deliveryOptions
+        .querySelectorAll('input[name="deliveryType"]')
+        .forEach((radio) => {
+            radio.addEventListener("change", async () => {
+                const type = radio.value;
+                const pvzWrapper = document.getElementById("pvzWrapper");
+                const infoBlock =
+                    pvzWrapper.parentElement.querySelector(".pvz-info");
+
+                if (type === "self") {
+                    // Самовывоз
+                    deliveryState.price = 0;
+                    deliveryState.pvz = null;
+
+                    // Скрываем выбор ПВЗ
+                    pvzWrapper.style.display = "none";
+                    infoBlock.style.display = "none";
+                } else {
+                    // Доставка СДЭК
+                    pvzWrapper.style.display = "block";
+                    // Цена должна быть пересчитана с сервера или оставлена
+                    const calcRes = await fetch("/api/delivery/calculate", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            postal_code: deliveryState.postalCode,
+                        }),
+                    });
+                    const calcData = await calcRes.json();
+                    deliveryState.price = calcData.price || 0;
+                }
+
+                // Обновляем итоговую сумму
+                updateOrderTotal();
+            });
+        });
+}
 
 /* ================== GRID ================== */
 
@@ -533,7 +981,14 @@ document.addEventListener("submit", (e) => {
         {
             el: document.getElementById("deliveryPoint"),
             name: "Пункт получения",
-            check: (v) => v.trim().length >= 3,
+            check: () => {
+                const typeRadio = document.querySelector(
+                    'input[name="deliveryType"]:checked',
+                );
+                const type = typeRadio ? typeRadio.value : "pvz";
+                if (type === "self") return true; // Самовывоз → необязательно
+                return !!deliveryState.pvz; // СДЭК → обязательно
+            },
         },
         {
             el: document.getElementById("deliveryRecipient"),
@@ -570,11 +1025,19 @@ document.addEventListener("submit", (e) => {
         phone: document.getElementById("phoneInput")?.value || "",
         email: document.getElementById("emailInput")?.value || "",
 
+        // delivery: {
+        //     city: document.getElementById("deliveryCity")?.value || "",
+        //     point: document.getElementById("deliveryPoint")?.value || "",
+        //     recipient:
+        //         document.getElementById("deliveryRecipient")?.value || "",
+        //     comment: document.querySelector("textarea")?.value || "",
+        // },
         delivery: {
-            city: document.getElementById("deliveryCity")?.value || "",
+            city: deliveryState.cityName,
+            fullName: deliveryState.cityFullName,
             point: document.getElementById("deliveryPoint")?.value || "",
-            recipient:
-                document.getElementById("deliveryRecipient")?.value || "",
+            pvz: deliveryState.pvz,
+            price: deliveryState.price,
             comment: document.querySelector("textarea")?.value || "",
         },
 

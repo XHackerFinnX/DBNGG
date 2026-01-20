@@ -1,13 +1,7 @@
 import os
-import json
-from fastapi import Depends, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter, Request
-from auth.telegram_auth import get_verified_user
-from router.models.model import SaveDataRequest, SaveResponse
-from datetime import datetime
 from log.log import setup_logger
 
 router = APIRouter(
@@ -22,4 +16,4 @@ logger = setup_logger("Router/catalog")
 
 @router.get("/", response_class=HTMLResponse)
 async def get_catalog(request: Request):
-    return templates.TemplateResponse("catalog.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request})
