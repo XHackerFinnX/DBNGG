@@ -18,6 +18,7 @@ const products = [
             "/static/image/photo8.jpg",
             "/static/image/photo9.jpg",
         ],
+        parameter: null,
     },
     {
         id: 2,
@@ -28,6 +29,7 @@ const products = [
         available: false,
         sizes: ["M", "L", "XL"],
         images: ["/static/image/photo4.jpg", "/static/image/photo5.jpg"],
+        parameter: null,
     },
 ];
 
@@ -1024,14 +1026,6 @@ document.addEventListener("submit", (e) => {
         telegram: document.getElementById("telegramInput")?.value || "",
         phone: document.getElementById("phoneInput")?.value || "",
         email: document.getElementById("emailInput")?.value || "",
-
-        // delivery: {
-        //     city: document.getElementById("deliveryCity")?.value || "",
-        //     point: document.getElementById("deliveryPoint")?.value || "",
-        //     recipient:
-        //         document.getElementById("deliveryRecipient")?.value || "",
-        //     comment: document.querySelector("textarea")?.value || "",
-        // },
         delivery: {
             city: deliveryState.cityName,
             fullName: deliveryState.cityFullName,

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Admin Login</title>
+        <link rel="stylesheet" href="/static/css/auth.css" />
+        <link rel="stylesheet" href="/static/css/font_text.css" />
+        <link rel="stylesheet" href="/static/css/no_blue.css" />
+    </head>
+    <body>
+        <div class="auth-container">
+            <h2>Админ-панель</h2>
+
+            <input id="login" type="text" placeholder="Логин" />
+            <div class="password-wrapper">
+                <input id="password" type="password" placeholder="Пароль" />
+                <span
+                    class="toggle-password"
+                    id="togglePassword"
+                    onclick="togglePassword()"
+                >
+                    <!-- глазик по умолчанию вставляется через JS -->
+                </span>
+            </div>
+
+            <button id="loginBtn" onclick="login()">Войти</button>
+            <button class="secondary" onclick="register()">Регистрация</button>
+
+            <p id="error"></p>
+        </div>
+
+        <script src="/static/js/auth.js"></script>
+        <script>
+            // Проверка авторизации при загрузке страницы
+            window.addEventListener("DOMContentLoaded", async () => {
+                try {
+                    const res = await fetch("/admin/validate-token", {
+                        method: "GET",
+                        credentials: "include", // отправляем cookie
+                    });
+                    if (res.ok) {
+                        // Пользователь уже авторизован → редирект
+                        window.location.href = "/admin/panel";
+                    }
+                } catch {
+                    // Если ошибка сети — остаёмся на логине
+                }
+            });
+        </script>
+    </body>
+</html>

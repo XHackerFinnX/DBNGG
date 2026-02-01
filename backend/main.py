@@ -12,8 +12,10 @@ from fastapi.responses import FileResponse
 from config import config
 
 from router.catalog import router as router_catalog
+from router.admin import router as router_admin
 from router.error import router as router_error
 from router.delivery import router as router_cdek
+from auth.auth import router as router_auth
 
 from task.db_task import background_task_db
 
@@ -62,6 +64,8 @@ app.mount(
 
 # Роутеры
 app.include_router(router_catalog)
+app.include_router(router_admin)
+app.include_router(router_auth)
 app.include_router(router_cdek)
 app.include_router(router_error)
 

@@ -14,3 +14,13 @@ class SaveResponse(BaseModel):
     status: str
     message: str
     timestamp: str
+    
+class AdminRegister(BaseModel):
+    login: str
+    password: str
+
+
+class AdminLogin(BaseModel):
+    login: str
+    password: str
+    ip: str

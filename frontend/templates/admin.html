@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Админка</title>
+        <link rel="stylesheet" href="/static/css/admin.css" />
+        <link rel="stylesheet" href="/static/css/font_text.css" />
+        <link rel="stylesheet" href="/static/css/no_blue.css" />
+    </head>
+    <body>
+        <!-- Верхняя панель -->
+        <div class="topbar">
+            <div class="admin-info">
+                <span id="adminName">Админ: </span>
+                <button id="adminMenuBtn" onclick="toggleAdminMenu()">▼</button>
+                <div id="adminMenu" class="admin-menu">
+                    <button onclick="logout()">Выйти</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="sidebar">
+            <h2>Админка</h2>
+            <button onclick="showSection('users')">Пользователи</button>
+            <button onclick="showSection('requests')">Заявки</button>
+            <button onclick="showSection('payments')">Платежи</button>
+            <button onclick="showSection('products')">Товары</button>
+            <button onclick="showSection('admins')">Админы</button>
+        </div>
+
+        <!-- Основная панель -->
+        <div class="main">
+            <!-- Пользователи -->
+            <div id="users" class="section">
+                <h3>Пользователи</h3>
+                <input
+                    type="text"
+                    placeholder="Поиск..."
+                    id="searchUsers"
+                    onkeyup="filterTable('usersTable', this.value)"
+                />
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>ФИО</th>
+                            <th>Telegram</th>
+                            <th>Телефон</th>
+                            <th>Email</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Заявки -->
+            <div id="requests" class="section" style="display: none">
+                <h3>Заявки клиентов</h3>
+                <input
+                    type="text"
+                    placeholder="Поиск..."
+                    id="searchRequests"
+                    onkeyup="filterTable('requestsTable', this.value)"
+                />
+                <table id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Город</th>
+                            <th>ПВЗ</th>
+                            <th>Сумма</th>
+                            <th>Создано</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Платежи -->
+            <div id="payments" class="section" style="display: none">
+                <h3>Платежи</h3>
+                <input
+                    type="text"
+                    placeholder="Поиск..."
+                    id="searchPayments"
+                    onkeyup="filterTable('paymentsTable', this.value)"
+                />
+                <table id="paymentsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Заявка</th>
+                            <th>Пользователь</th>
+                            <th>Статус</th>
+                            <th>IP</th>
+                            <th>Ссылка</th>
+                            <th>Создано</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Товары -->
+            <div id="products" class="section" style="display: none">
+                <h3>Каталог товаров</h3>
+                <button class="add-btn" onclick="openModal('addProductModal')">
+                    Добавить товар
+                </button>
+                <input
+                    type="text"
+                    placeholder="Поиск..."
+                    id="searchProducts"
+                    onkeyup="filterTable('productsTable', this.value)"
+                />
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Артикул</th>
+                            <th>Название</th>
+                            <th>Цена</th>
+                            <th>Количество</th>
+                            <th>Доступен</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Админы -->
+            <div id="admins" class="section" style="display: none">
+                <h3>Администраторы</h3>
+                <button class="add-btn" onclick="openModal('addAdminModal')">
+                    Добавить админа
+                </button>
+                <table id="adminsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Логин</th>
+                            <th>Статус</th>
+                            <th>IP</th>
+                            <th>Последний вход</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Модалки -->
+        <div id="addProductModal" class="modal">
+            <div class="modal-content">
+                <h4>Добавить товар</h4>
+                <input type="text" id="productArticle" placeholder="Артикул" />
+                <input type="text" id="productName" placeholder="Название" />
+                <input type="number" id="productPrice" placeholder="Цена" />
+                <input
+                    type="number"
+                    id="productCount"
+                    placeholder="Количество"
+                />
+                <select id="productAvailable">
+                    <option value="true">Доступен</option>
+                    <option value="false">Не доступен</option>
+                </select>
+                <div class="modal-actions">
+                    <button onclick="addProduct()">Сохранить</button>
+                    <button onclick="closeModal('addProductModal')">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="addAdminModal" class="modal">
+            <div class="modal-content">
+                <h4>Добавить админа</h4>
+                <input type="text" id="adminLogin" placeholder="Логин" />
+                <input
+                    type="password"
+                    id="adminPassword"
+                    placeholder="Пароль"
+                />
+                <div class="modal-actions">
+                    <button onclick="addAdmin()">Сохранить</button>
+                    <button onclick="closeModal('addAdminModal')">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script src="/static/js/admin.js"></script>
+    </body>
+</html>

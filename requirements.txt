@@ -5,8 +5,10 @@
 #python.exe -m pip install --upgrade pip
 
 fastapi
+fastapi[all]
 asyncpg
 uvicorn
+pyjwt
 Jinja2
 requests
 pydantic_settings
@@ -16,3 +18,5 @@ python-multipart
 qrcode[pil]
 fs-cdek-api
 httpx
+passlib
+bcrypt==3.2.2
